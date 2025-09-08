@@ -1,13 +1,12 @@
 const { default: mongoose } = require("mongoose");
-
+const config = require('../config');
 
 const connectDatabase = async () => {
     try {
-        const url = "mongodb://localhost:27017/hrmsDB";
-        await mongoose.connect(url);
-        console.log("database connected");
+        await mongoose.connect(config.database.mongodb.uri, config.database.mongodb.options);
+        console.log(config.messages.error.databaseConnected);
     } catch (error) {
-        console.log("somthing went wrong while connecting to database", error);
+        console.log(config.messages.error.databaseError, error);
     }
 };
 

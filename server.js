@@ -2,19 +2,22 @@ const express = require('express');
 const { connectDatabase } = require('./dbConfig/db');
 const { userRoutes } = require('./routes/userRoutes');
 const cors = require('cors');
-const app = express();
-const port = 3000;
+const config = require('./config');
 
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+const app = express();
+
+// CORS Configuration
+app.use(cors(config.cors));
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/employee', userRoutes);
-app.listen(port, async () => {
-  await connectDatabase();
-  console.log(`Server is running on port ${port}`);
+app.listen(config.server.port, async () => {
+  try {
+    await connectDatabase();
+    console.log(`${config.messages.success.serverRunning} ${config.server.port}`);
+  } catch (error) {
+    console.log(`${config.messages.error.serverError} ${error}`);
+  }
 });

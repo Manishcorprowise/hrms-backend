@@ -1,6 +1,10 @@
 const { default: mongoose } = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+    userName: {
+        type: String,
+        required: true
+    },
     employeeName: {
         type: String,
         required: true
@@ -37,6 +41,7 @@ const userSchema = new mongoose.Schema({
     isTemPassword: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
     isDeleted: { type: Boolean, default: false },
+    lastLoginAt: { type: Date },
     createdAt: {
         type: Date,
         default: Date.now
