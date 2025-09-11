@@ -58,7 +58,6 @@ module.exports = {
             // Update last login time
             await User_Model.findByIdAndUpdate(user._id, {
                 lastLoginAt: new Date(),
-                updatedAt: new Date()
             });
 
             res.status(config.statusCodes.success).json({
@@ -69,8 +68,14 @@ module.exports = {
                     userName: user.userName,
                     employeeName: user.employeeName,
                     employeeNumber: user.employeeNumber,
+                    phone: user.phone,
+                    position: user.position,
+                    department: user.department,
+                    manager: user.manager,
+                    dateOfJoining: user.dateOfJoining,
                     role: user.role,
-                    isTemPassword: user.isTemPassword
+                    isTemPassword: user.isTemPassword,
+                    isActive: user.isActive
                 },
                 ...tokens
             });
@@ -151,7 +156,7 @@ module.exports = {
     },
 
     async createUser(req, res) {
-        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role } = req.body;
+        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager } = req.body;
         // For now, use a default createdBy since we don't have authentication yet
         const createdBy = "admin";
         const password = createTempPassword();
@@ -165,8 +170,8 @@ module.exports = {
         
 
         try {
-            if (!employeeName || !employeeNumber || !dateOfJoining || !email || !phone || !position || !role ) {
-                return res.status(400).json({ message: "All fields are required" });
+            if (!employeeName || !employeeNumber || !dateOfJoining || !email || !phone || !position || !role || !department || !manager) {
+                return res.status(400).json({ message: "All fields are required including department and manager" });
             }
             
             const user = await User_Model.create({ 
@@ -177,7 +182,9 @@ module.exports = {
                 email, 
                 phone, 
                 position, 
-                role, 
+                role,
+                department: department || "General",
+                manager: manager || "Not Assigned",
                 password: hashedPassword,
                 createdBy,
                 updatedBy: createdBy,
@@ -200,7 +207,7 @@ module.exports = {
             res.status(500).json({ message: "Internal server error", error: error.message });
         }
     },
-    
+
     async updateUserPassword(req, res) {
         const { email, oldPassword, newPassword } = req.body;
         try {

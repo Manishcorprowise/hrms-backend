@@ -24,7 +24,8 @@ const config = {
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000'
+      'http://127.0.0.1:3000',
+      /\.ngrok-free\.app$/
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -68,7 +69,8 @@ const config = {
       serverRunning: 'Server is running on port',
       loginSuccess: 'Login successful',
       logoutSuccess: 'Logout successful',
-      tokenRefreshed: 'Token refreshed successfully'
+      tokenRefreshed: 'Token refreshed successfully',
+      databaseConnected: 'Database connected successfully'
     },
     error: {
       validation: 'All fields are required',
