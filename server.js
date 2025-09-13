@@ -2,11 +2,11 @@ const express = require('express');
 const { connectDatabase } = require('./dbConfig/db');
 const { userRoutes } = require('./routes/userRoutes');
 const { personalDetailsRoutes } = require('./routes/personalDetailsRoutes');
-const { profileRoutes } = require('./routes/profileRoutes');
 const cors = require('cors');
 const config = require('./config');
 const fileUpload = require('express-fileupload');
 const path = require('path');
+const { documentRoutes } = require('./routes/documentRoutes');
 
 const app = express();
 
@@ -22,7 +22,8 @@ app.use(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
-        "https://5b6e90335985.ngrok-free.app"
+        "https://5b6e90335985.ngrok-free.app",
+        "https://b06877240d48.ngrok-free.app"
       ];
 
       // Check if origin is in allowed list
@@ -75,7 +76,10 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, ngrok-skip-browser-warning');
+  
+  // Add ngrok bypass header to skip warning page
+  res.header('ngrok-skip-browser-warning', 'true');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
@@ -89,7 +93,7 @@ app.use((req, res, next) => {
 
 app.use('/api/employee', userRoutes);
 app.use('/api/personal-details', personalDetailsRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api/document', documentRoutes);
 
 
 

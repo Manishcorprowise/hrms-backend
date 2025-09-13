@@ -50,7 +50,6 @@ module.exports = {
             });
         }
     },
-
     // Get personal details by employee ID
     async getPersonalDetails(req, res) {
         try {
@@ -60,7 +59,6 @@ module.exports = {
                 employeeId, 
             }).populate('employeeId', 'employeeName employeeNumber email phone position department');
 
-            console.log(personalDetails,'personalDetails');
             if (!personalDetails) {
                 // Return empty personal details structure instead of 404
                 return res.status(200).json({
@@ -82,12 +80,12 @@ module.exports = {
             });
         }
     },
-
     // Update personal details
     async updatePersonalDetails(req, res) {
         try {
             const { employeeId } = req.params;
             const updateData = req.body;
+            console.log(updateData,'updateData');
 
             const personalDetails = await PersonalDetails_Model.findOneAndUpdate(
                 { employeeId },
@@ -122,96 +120,6 @@ module.exports = {
     },
 
 
-    // Get all personal details with pagination
-    async getAllPersonalDetails(req, res) {
-        try {
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
 
-            const personalDetails = await PersonalDetails_Model.find({ isDeleted: false })
-                .populate('employeeId', 'employeeName employeeNumber email phone position department')
-                .populate('createdBy', 'employeeName')
-                .populate('updatedBy', 'employeeName')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit);
-
-            const total = await PersonalDetails_Model.countDocuments({ isDeleted: false });
-
-            res.status(200).json({
-                success: true,
-                data: personalDetails,
-                pagination: {
-                    currentPage: page,
-                    totalPages: Math.ceil(total / limit),
-                    totalRecords: total,
-                    hasNext: page < Math.ceil(total / limit),
-                    hasPrev: page > 1
-                }
-            });
-        } catch (error) {
-            console.error('Error fetching all personal details:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-                error: error.message
-            });
-        }
-    },
-
-    // Search personal details
-    async searchPersonalDetails(req, res) {
-        try {
-            const { query, field } = req.query;
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
-
-            let searchQuery = { isDeleted: false };
-
-            if (query && field) {
-                if (field === 'employeeName') {
-                    searchQuery = {
-                        ...searchQuery,
-                        $or: [
-                            { 'employeeId.employeeName': { $regex: query, $options: 'i' } }
-                        ]
-                    };
-                } else if (field === 'nationality') {
-                    searchQuery.nationality = { $regex: query, $options: 'i' };
-                } else if (field === 'maritalStatus') {
-                    searchQuery.maritalStatus = { $regex: query, $options: 'i' };
-                }
-            }
-
-            const personalDetails = await PersonalDetails_Model.find(searchQuery)
-                .populate('employeeId', 'employeeName employeeNumber email phone position department')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit);
-
-            const total = await PersonalDetails_Model.countDocuments(searchQuery);
-
-            res.status(200).json({
-                success: true,
-                data: personalDetails,
-                pagination: {
-                    currentPage: page,
-                    totalPages: Math.ceil(total / limit),
-                    totalRecords: total,
-                    hasNext: page < Math.ceil(total / limit),
-                    hasPrev: page > 1
-                }
-            });
-        } catch (error) {
-            console.error('Error searching personal details:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Internal server error',
-                error: error.message
-            });
-        }
-    }
 };
 

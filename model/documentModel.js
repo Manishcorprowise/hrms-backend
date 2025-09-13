@@ -1,6 +1,6 @@
 const { default: mongoose } = require('mongoose');
 
-const profileSchema = new mongoose.Schema({
+const documentSchema = new mongoose.Schema({
     employeeId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users',
@@ -70,10 +70,10 @@ const profileSchema = new mongoose.Schema({
 });
 
 // Index for better query performance
-profileSchema.index({ employeeId: 1, fileType: 1, isActive: 1 });
-profileSchema.index({ employeeId: 1, category: 1, isActive: 1 });
-profileSchema.index({ isDeleted: 1 });
+documentSchema.index({ employeeId: 1, fileType: 1, isActive: 1 });
+documentSchema.index({ employeeId: 1, category: 1, isActive: 1 });
+documentSchema.index({ isDeleted: 1 });
 
-const Profile_Model = mongoose.model('Profiles', profileSchema, 'Profiles');
+const Document_Model = mongoose.model('Documents', documentSchema, 'Documents');
 
-module.exports = { Profile_Model };
+module.exports = { Document_Model };

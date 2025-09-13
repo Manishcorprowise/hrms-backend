@@ -4,7 +4,7 @@ const personalDetailsSchema = new mongoose.Schema({
     employeeId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Users',
-        
+
         unique: true
     },
     // Personal Information
@@ -96,6 +96,18 @@ const personalDetailsSchema = new mongoose.Schema({
         status: {
             type: String,
         }
+    }],
+    // Bank Details
+    account: [{
+        bankAccountNumber: {
+            type: String
+        },
+        bankIFSC: {
+            type: String
+        },
+        beneficiaryName: {
+            type: String
+        },
     }],
     // System fields
     createdBy: {
