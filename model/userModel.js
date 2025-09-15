@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema({
     deletedAt: {
         type: Date,
         default: Date.now
+    },
+    endDate: {
+        type: Date,
+        required: false
     }
     
 });

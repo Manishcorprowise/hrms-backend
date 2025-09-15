@@ -1,16 +1,18 @@
+require('dotenv').config();
+
 const config = {
   // Server Configuration
   server: {
-    port: 3000,
-    host: 'localhost',
-    environment: 'development',
-    baseUrl: 'http://localhost:3000'
+    port: process.env.PORT || 3000,
+    host: process.env.SERVER_HOST || 'localhost',
+    environment: process.env.NODE_ENV || 'development',
+    baseUrl: process.env.SERVER_BASE_URL || 'http://localhost:3000'
   },
 
   // Database Configuration
   database: {
     mongodb: {
-      uri: 'mongodb://localhost:27017/hrmsDB',
+      uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/hrmsDB',
       options: {
         useNewUrlParser: true,
         useUnifiedTopology: true
@@ -47,20 +49,27 @@ const config = {
 
   // JWT Configuration
   jwt: {
-    secret: 'your-super-secret-jwt-key-change-this-in-production-hrms-2024',
-    expiresIn: '24h',
-    refreshExpiresIn: '7d',
-    issuer: 'hrms-app',
-    audience: 'hrms-users'
+    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production-hrms-2024',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+    issuer: process.env.JWT_ISSUER || 'hrms-app',
+    audience: process.env.JWT_AUDIENCE || 'hrms-users'
   },
 
   // Email Configuration
   email: {
-    service: 'gmail',
+    service: process.env.EMAIL_SERVICE || 'gmail',
     auth: {
-      user: 'noreplykadconnect@gmail.com',
-      pass: 'lwnknrsezrihujas'
+      user: process.env.EMAIL_USER || 'noreplykadconnect@gmail.com',
+      pass: process.env.EMAIL_PASS || 'lwnknrsezrihujas'
     }
+  },
+
+  // File Upload Configuration
+  fileUpload: {
+    baseUrl: process.env.FILE_BASE_URL || 'http://localhost:3000/api/files/',
+    maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 52428800, // 50MB
+    uploadPath: process.env.UPLOAD_PATH || 'uploads'
   },
 
   // Response Messages

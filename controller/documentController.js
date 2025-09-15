@@ -3,61 +3,110 @@
 const path = require('path');
 const fs = require('fs');
 const { Document_Model } = require('../model/documentModel');
+const config = require('../config');
+
+// Helper function to get the correct base URL for file serving
+function getFileBaseUrl(req) {
+  // Check if we have a custom base URL in config
+  if (config.fileUpload.baseUrl) {
+    return config.fileUpload.baseUrl.endsWith('/') 
+      ? config.fileUpload.baseUrl 
+      : config.fileUpload.baseUrl + '/';
+  }
+  
+  // For production, try to get the proper protocol and host
+  const protocol = req.get('x-forwarded-proto') || req.protocol;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  
+  // Remove port from host if it's a standard port
+  let cleanHost = host;
+  if ((protocol === 'https' && host.includes(':443')) || 
+      (protocol === 'http' && host.includes(':80'))) {
+    cleanHost = host.split(':')[0];
+  }
+  
+  return `${protocol}://${cleanHost}/api/files/`;
+}
 
 // Controller to handle file upload and save document info
 async function uploadDocumentFile(req, res) {
     try {
-        const { file, fileName, employeeId, fileType } = req.body;
+        const { employeeId, category, files } = req.body;
 
-        if (!file || !fileName || !employeeId || !fileType) {
+        if (!employeeId || !category || !files || !Array.isArray(files)) {
             return res.status(400).json({
                 status: false,
-                message: 'Missing required fields: file, fileName, employeeId'
+                message: 'Missing required fields: employeeId, category, and files array'
             });
         }
 
-        // Create uploads/<fileType>/<employeeId> folder if not exists
+        const uploadedDocuments = [];
+        const validDocumentTypes = ['aadhaar', 'profile', 'identity', 'address', 'education', 'experience', 'other'];
+
+        // Validate document category
+        if (!validDocumentTypes.includes(category)) {
+            return res.status(400).json({
+                status: false,
+                message: `Invalid document category. Must be one of: ${validDocumentTypes.join(', ')}`
+            });
+        }
+
+        // Create uploads/documents/<employeeId>/<category>/ folder if not exists
         const filesFolder = path.join(
             __dirname,
             "..",
             "uploads",
-            fileType,
-            employeeId.toString()
+            "documents",
+            employeeId.toString(),
+            category
         );
         if (!fs.existsSync(filesFolder)) {
             fs.mkdirSync(filesFolder, { recursive: true });
         }
 
-        // Prepare file name and path
-        let fileExt = fileName.split(".");
-        fileExt = fileExt[fileExt.length - 1];
-        const timestamp = Date.now();
-        const savedFileName = `${fileName.split(".")[0]}_${timestamp}.${fileExt}`;
-        const filePath = path.join(filesFolder, savedFileName);
+        // Process each file in the files array
+        for (const fileData of files) {
+            const { originalName, fileType, fileSize, dataUrl } = fileData;
 
-        // Remove base64 prefix if present
-        const base64File = file.replace(/^data:.*;base64,/, "");
-        fs.writeFileSync(filePath, base64File, { encoding: "base64" });
+            if (!originalName || !fileType || !dataUrl) {
+                continue; // Skip invalid file data
+            }
 
-        // Save document info to DB
-        const document = new Document_Model({
-            employeeId,
-            fileName: savedFileName,
-            originalName: fileName,
-            fileType,
-            filePath: path.relative(path.join(__dirname, "..", "uploads"), filePath), // relative path from uploads
-            uploadedBy: req.user && req.user.id ? req.user.id : null,
-        });
+            // Prepare file name and path
+            let fileExt = originalName.split(".");
+            fileExt = fileExt[fileExt.length - 1];
+            const timestamp = Date.now();
+            const savedFileName = `${category}-${timestamp}-${Math.floor(Math.random() * 1000000000)}.${fileExt}`;
+            const filePath = path.join(filesFolder, savedFileName);
 
-        await document.save();
+            // Extract base64 data from dataUrl
+            const base64File = dataUrl.replace(/^data:.*;base64,/, "");
+
+            // Write file to disk
+            fs.writeFileSync(filePath, base64File, { encoding: "base64" });
+
+            // Save document info to DB
+            const document = new Document_Model({
+                employeeId,
+                fileName: savedFileName,
+                originalName: originalName,
+                fileType: category,
+                filePath: path.relative(path.join(__dirname, "..", "uploads"), filePath),
+                fileSize: fileSize || 0,
+                mimeType: fileType,
+                uploadedBy: req.user && req.user.id ? req.user.id : null,
+            });
+
+            await document.save();
+            uploadedDocuments.push(document);
+        }
 
         return res.status(201).json({
             status: true,
-            message: 'File uploaded successfully',
-            data: document
+            message: 'Files uploaded successfully',
+            data: uploadedDocuments
         });
     } catch (error) {
-        console.error('Error uploading document:', error);
         return res.status(500).json({
             status: false,
             message: 'Internal server error',
@@ -66,10 +115,11 @@ async function uploadDocumentFile(req, res) {
     }
 }
 
-// Optionally, a controller to get files for an employee
+// Controller to get files for an employee
 async function getDocumentFiles(req, res) {
   try {
-    const { employeeId } = req.params;
+    const { employeeId, category } = req.query;
+    
     if (!employeeId) {
       return res.status(400).json({
         status: false,
@@ -77,31 +127,78 @@ async function getDocumentFiles(req, res) {
       });
     }
 
-    // Fetch all documents for the given employeeId that are not deleted
-    const docs = await Document_Model.find({ employeeId, isDeleted: false })
-      .sort({ updatedAt: -1 })
-      .select(
-        "fileName originalName filePath fileSize mimeType fileType category description createdAt updatedAt"
-      );
+    // Build query filter
+    const filter = { employeeId };
+    
+    // If category is specified, filter by it
+    if (category) {
+      const validCategories = ['aadhaar', 'profile', 'identity', 'address', 'education', 'experience', 'other'];
+      if (validCategories.includes(category)) {
+        filter.fileType = category;
+      } else {
+        return res.status(400).json({
+          status: false,
+          message: `Invalid category. Must be one of: ${validCategories.join(', ')}`
+        });
+      }
+    }
 
-    // Group documents by fileType
+    // Fetch documents based on filter
+    const docs = await Document_Model.find(filter)
+      .sort({ createdAt: -1 });
+
+    // Debug logging
+    console.log('Query filter:', filter);
+    console.log('Found documents:', docs.length);
+    console.log('Documents:', docs);
+
+    // If category is specified, return files directly
+    if (category) {
+      const baseUrl = getFileBaseUrl(req);
+      const filesWithUrl = docs.map(doc => ({
+        ...doc.toObject(),
+        fileUrl: baseUrl + doc.filePath.replace(/\\/g, "/")
+      }));
+
+      return res.status(200).json({
+        status: true,
+        data: {
+          category: category,
+          files: filesWithUrl,
+          count: filesWithUrl.length
+        }
+      });
+    }
+
+    // Group documents by fileType for all categories
     const grouped = {};
-    const baseUrl = `${req.protocol}://${req.get("host")}/api/files/`;
+    const baseUrl = getFileBaseUrl(req);
+    
     docs.forEach((doc) => {
       const type = doc.fileType || "other";
-      if (!grouped[type]) grouped[type] = [];
-      grouped[type].push({
+      if (!grouped[type]) {
+        grouped[type] = {
+          category: type,
+          files: [],
+          count: 0
+        };
+      }
+      grouped[type].files.push({
         ...doc.toObject(),
         fileUrl: baseUrl + doc.filePath.replace(/\\/g, "/")
       });
+      grouped[type].count++;
     });
 
     return res.status(200).json({
       status: true,
-      data: grouped
+      data: {
+        employeeId: employeeId,
+        categories: grouped,
+        totalFiles: docs.length
+      }
     });
   } catch (error) {
-    console.error("Error fetching documents:", error.message);
     return res
       .status(500)
       .json({ status: false, message: "Internal server error" });

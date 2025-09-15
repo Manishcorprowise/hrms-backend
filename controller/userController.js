@@ -209,9 +209,9 @@ module.exports = {
     },
     async updateUser(req, res) {
         const { id } = req.params;
-        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager } = req.body;
+        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager, isActive, endDate } = req.body;
         try {
-            const user = await User_Model.findByIdAndUpdate(id, { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager }, { new: true });
+            const user = await User_Model.findByIdAndUpdate(id, { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager, isActive, endDate }, { new: true });
             res.status(200).json({ message: "User updated successfully", user: user });
         } catch (error) {
             console.error("Error updating user:", error);
@@ -308,7 +308,56 @@ module.exports = {
     },
     async getAllUsers(req, res) {
         try {
-            const users = await User_Model.find().populate('manager', 'employeeName');
+            const users = await User_Model.aggregate([
+                {
+                    $lookup: {
+                        from: 'Users',
+                        localField: 'manager',
+                        foreignField: '_id',
+                        as: 'managerData'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'PersonalDetails',
+                        localField: '_id',
+                        foreignField: 'employeeId',
+                        as: 'personalDetails'
+                    }
+                },
+                {
+                    $addFields: {
+                        manager: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$managerData' }, 0] },
+                                then: { $arrayElemAt: ['$managerData.employeeName', 0] },
+                                else: null
+                            }
+                        },
+                        managerId: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$managerData' }, 0] },
+                                then: { $arrayElemAt: ['$managerData._id', 0] },
+                                else: null
+                            }
+                        },
+                        dateOfBirth: {
+                            $cond: {
+                                if: { $gt: [{ $size: '$personalDetails' }, 0] },
+                                then: { $arrayElemAt: ['$personalDetails.dateOfBirth', 0] },
+                                else: null
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        managerData: 0,
+                        personalDetails: 0
+                    }
+                }
+            ]);
+
             res.status(200).json({
                 message: "Users fetched successfully",
                 users: users
