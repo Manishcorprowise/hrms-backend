@@ -209,9 +209,8 @@ module.exports = {
     },
     async updateUser(req, res) {
         const { id } = req.params;
-        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager, isActive, endDate } = req.body;
         try {
-            const user = await User_Model.findByIdAndUpdate(id, { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager, isActive, endDate }, { new: true });
+            const user = await User_Model.findByIdAndUpdate(id, { ...req.body });
             res.status(200).json({ message: "User updated successfully", user: user });
         } catch (error) {
             console.error("Error updating user:", error);

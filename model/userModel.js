@@ -78,7 +78,12 @@ const userSchema = new mongoose.Schema({
     endDate: {
         type: Date,
         required: false
+    },
+    kadCred:{
+        type:Boolean,
+        default:false
     }
+    
     
 });
 
