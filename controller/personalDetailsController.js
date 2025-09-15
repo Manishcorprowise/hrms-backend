@@ -55,11 +55,58 @@ module.exports = {
         try {
             const { employeeId } = req.params;
 
-            const personalDetails = await PersonalDetails_Model.findOne({ 
-                employeeId, 
-            }).populate('employeeId', 'employeeName employeeNumber email phone position department');
+            const personalDetails = await PersonalDetails_Model.aggregate([
+                {
+                    $match: { employeeId: new mongoose.Types.ObjectId(employeeId) }
+                },
+                {
+                    $lookup: {
+                        from: 'Users',
+                        localField: 'employeeId',
+                        foreignField: '_id',
+                        as: 'employeeData'
+                    }
+                },
+                {
+                    $unwind: '$employeeData'
+                },
+                {
+                    $lookup: {
+                        from: 'Users',
+                        localField: 'employeeData.manager',
+                        foreignField: '_id',
+                        as: 'managerData'
+                    }
+                },
+                {
+                    $addFields: {
+                        employeeId: {
+                            _id: '$employeeData._id',
+                            employeeName: '$employeeData.employeeName',
+                            employeeNumber: '$employeeData.employeeNumber',
+                            email: '$employeeData.email',
+                            phone: '$employeeData.phone',
+                            position: '$employeeData.position',
+                            department: '$employeeData.department',
+                            manager: {
+                                $cond: {
+                                    if: { $gt: [{ $size: '$managerData' }, 0] },
+                                    then: { $arrayElemAt: ['$managerData.employeeName', 0] },
+                                    else: null
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    $project: {
+                        employeeData: 0,
+                        managerData: 0
+                    }
+                }
+            ]);
 
-            if (!personalDetails) {
+            if (!personalDetails || personalDetails.length === 0) {
                 // Return empty personal details structure instead of 404
                 return res.status(200).json({
                     success: true,
@@ -67,9 +114,11 @@ module.exports = {
                 });
             }
 
+            const result = personalDetails[0];
+
             res.status(200).json({
                 success: true,
-                data: personalDetails
+                data: result
             });
         } catch (error) {
             console.error('Error fetching personal details:', error);

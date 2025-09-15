@@ -27,7 +27,7 @@ module.exports = {
             }
 
             // Find user by email
-            const user = await User_Model.findOne({ email: email });
+            const user = await User_Model.findOne({ email: email }).populate('manager', 'employeeName');
             if (!user) {
                 return res.status(config.statusCodes.unauthorized).json({
                     message: config.messages.error.invalidCredentials,
@@ -308,7 +308,7 @@ module.exports = {
     },
     async getAllUsers(req, res) {
         try {
-            const users = await User_Model.find();
+            const users = await User_Model.find().populate('manager', 'employeeName');
             res.status(200).json({
                 message: "Users fetched successfully",
                 users: users
@@ -321,7 +321,7 @@ module.exports = {
     async getUserById(req, res) {
         const { id } = req.params;
         try {
-            const user = await User_Model.findById(id);
+            const user = await User_Model.findById(id).populate('manager', 'employeeName');
             res.status(200).json({
                 message: "User fetched successfully",
                 user: user

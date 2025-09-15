@@ -7,21 +7,21 @@ const { Document_Model } = require('../model/documentModel');
 // Controller to handle file upload and save document info
 async function uploadDocumentFile(req, res) {
     try {
-        const { file, fileName, fileType, employeeId } = req.body;
+        const { file, fileName, employeeId, fileType } = req.body;
 
-        if (!file || !fileName || !fileType || !employeeId) {
+        if (!file || !fileName || !employeeId || !fileType) {
             return res.status(400).json({
-                success: false,
-                message: 'Missing required fields: file, fileName, fileType, employeeId'
+                status: false,
+                message: 'Missing required fields: file, fileName, employeeId'
             });
         }
 
-        // Create uploads/bksDocs/<employeeId> folder if not exists
+        // Create uploads/<fileType>/<employeeId> folder if not exists
         const filesFolder = path.join(
             __dirname,
             "..",
             "uploads",
-            "bksDocs",
+            fileType,
             employeeId.toString()
         );
         if (!fs.existsSync(filesFolder)) {
@@ -44,27 +44,22 @@ async function uploadDocumentFile(req, res) {
             employeeId,
             fileName: savedFileName,
             originalName: fileName,
+            fileType,
             filePath: path.relative(path.join(__dirname, "..", "uploads"), filePath), // relative path from uploads
-            fileSize: Buffer.from(base64File, 'base64').length,
-            mimeType: fileType,
-            fileType: req.body.fileType || 'document',
             uploadedBy: req.user && req.user.id ? req.user.id : null,
-            // Optionally add category, description, etc. from req.body if provided
-            category: req.body.category,
-            description: req.body.description
         });
 
         await document.save();
 
         return res.status(201).json({
-            success: true,
-            message: 'File uploaded and document saved successfully',
+            status: true,
+            message: 'File uploaded successfully',
             data: document
         });
     } catch (error) {
         console.error('Error uploading document:', error);
         return res.status(500).json({
-            success: false,
+            status: false,
             message: 'Internal server error',
             error: error.message
         });

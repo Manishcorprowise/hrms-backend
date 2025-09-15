@@ -34,8 +34,9 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     manager: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+        required: false
     },
     role: {
         type: String,

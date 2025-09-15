@@ -4,8 +4,8 @@ const {uploadDocumentFile,getDocumentFiles} = require('../controller/documentCon
 const { authenticateToken } = require('../middlewares/auth');
 
 router.use(authenticateToken);
-router.post('/upload/:employeeId', uploadDocumentFile);
-router.get('/employee/:employeeId', getDocumentFiles);
+router.post('/upload', uploadDocumentFile);
+router.get('/get-files', getDocumentFiles);
 
 
 module.exports = { documentRoutes: router };
