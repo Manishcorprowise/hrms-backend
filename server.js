@@ -11,49 +11,7 @@ const { documentRoutes } = require('./routes/documentRoutes');
 const app = express();
 
 // CORS Configuration
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // If no origin (mobile apps, curl, Postman), allow
-      if (!origin) return callback(null, true);
-
-      const allowedOrigins = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        "https://5b6e90335985.ngrok-free.app",
-        "https://b06877240d48.ngrok-free.app",
-        "https://api.test.kadconnect.ca"
-      ];
-
-      // Check if origin is in allowed list
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      // Check if it's an ngrok URL (dynamic ngrok URLs)
-      if (/^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/.test(origin)) {
-        return callback(null, true);
-      }
-
-      // Check if it's a localhost with different port
-      if (/^http:\/\/localhost:\d+$/.test(origin)) {
-        return callback(null, true);
-      }
-
-      // Check if it's 127.0.0.1 with different port
-      if (/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS: " + origin));
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  })
-);
+app.use(cors());
 
 
 
@@ -72,23 +30,6 @@ app.use(fileUpload({
 // Static file serving for uploaded files
 app.use('/api/files', express.static(path.join(__dirname, 'uploads')));
 
-// Additional CORS headers for ngrok
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, ngrok-skip-browser-warning');
-  
-  // Add ngrok bypass header to skip warning page
-  res.header('ngrok-skip-browser-warning', 'true');
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 
 
 
