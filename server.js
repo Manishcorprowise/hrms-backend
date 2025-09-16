@@ -23,7 +23,8 @@ app.use(
         "http://127.0.0.1:5173",
         "http://127.0.0.1:3000",
         "https://5b6e90335985.ngrok-free.app",
-        "https://b06877240d48.ngrok-free.app"
+        "https://b06877240d48.ngrok-free.app",
+        "https://api.test.kadconnect.ca"
       ];
 
       // Check if origin is in allowed list
