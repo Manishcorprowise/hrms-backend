@@ -14,6 +14,6 @@ userRoutes.post('/refresh-token', refreshToken);
 userRoutes.post('/create', authenticateToken, authorizeRoles(['admin', 'super_admin']), createUser);
 userRoutes.post('/update-user/:id', authenticateToken, authorizeRoles(['admin', 'super_admin']), updateUser);
 userRoutes.post('/update-password', updateUserPassword);
-userRoutes.get('/all-users', authenticateToken, authorizeRoles(['admin', 'super_admin']), getAllUsers);
-userRoutes.get('/get-user/:id', authenticateToken, authorizeRoles(['admin', 'super_admin']), getUserById);
+userRoutes.get('/all-users', authenticateToken, authorizeRoles(['admin', 'super_admin','manager']), getAllUsers);
+userRoutes.get('/get-user/:id', authenticateToken, authorizeRoles(['admin', 'super_admin','manager']), getUserById);
 module.exports = {userRoutes};

@@ -108,6 +108,20 @@ const personalDetailsSchema = new mongoose.Schema({
         beneficiaryName: {
             type: String
         },
+        // Canadian Banking Fields
+        bankName: {
+            type: String
+        },
+        bankAddress: {
+            type: String
+        },
+        transitNumber: {
+            type: String
+        },
+        institutionCode: {
+            type: String
+        },
+
     }],
     // System fields
     createdBy: {
