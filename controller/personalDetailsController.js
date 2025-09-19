@@ -134,7 +134,6 @@ module.exports = {
         try {
             const { employeeId } = req.params;
             const updateData = req.body;
-            console.log(updateData,'updateData');
 
             const personalDetails = await PersonalDetails_Model.findOneAndUpdate(
                 { employeeId },

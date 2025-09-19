@@ -21,13 +21,14 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // File upload middleware
 app.use(fileUpload({
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+    limits: { fileSize: 50 * 1024 * 1024 }, 
     useTempFiles: true,
     tempFileDir: '/tmp/',
     createParentPath: true
 }));
 
 // Static file serving for uploaded files
+
 app.use('/api/files', express.static(path.join(__dirname, 'uploads')));
 
 

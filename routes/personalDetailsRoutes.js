@@ -11,7 +11,7 @@ const { authenticateToken } = require('../middlewares/auth');
 router.use(authenticateToken);
 router.post('/:employeeId', createPersonalDetails);
 router.get('/:employeeId', getPersonalDetails);
-router.put('/:employeeId', updatePersonalDetails);
+router.post('/update/:employeeId', updatePersonalDetails);
 
 
 
