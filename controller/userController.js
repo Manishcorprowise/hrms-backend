@@ -159,7 +159,8 @@ module.exports = {
         const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager } = req.body;
         // For now, use a default createdBy since we don't have authentication yet
         const createdBy = "admin";
-        const password = createTempPassword();
+        // const password = createTempPassword();
+        const password = "temp@1234";
         const userName = generateUsername(employeeName,employeeNumber);
         // Generate professional HTML email template
         const htmlEmailContent = generateNewEmployeeEmailTemplate(userName, password, employeeName);

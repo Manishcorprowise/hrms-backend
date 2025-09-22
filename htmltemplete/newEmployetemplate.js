@@ -11,8 +11,8 @@ const config = require('../config');
 const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, resetToken = null) => {
     // Generate password reset link
     const resetLink = resetToken 
-        ? `${config.server.baseUrl || 'http://localhost:3000'}/reset-password?token=${resetToken}`
-        : `${config.server.baseUrl || 'http://localhost:3000'}/login`;
+        ? `${req.headers['x-frontend-base-url']}/reset-password?token=${resetToken}`
+        : `${req.headers['x-frontend-base-url']}/login`;
 
     return `
     <!DOCTYPE html>

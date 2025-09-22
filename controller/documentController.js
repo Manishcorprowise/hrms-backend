@@ -154,10 +154,9 @@ async function getDocumentFiles(req, res) {
 
     // If category is specified, return files directly
     if (category) {
-      const baseUrl = getFileBaseUrl(req);
       const filesWithUrl = docs.map(doc => ({
         ...doc.toObject(),
-        fileUrl: baseUrl + doc.filePath.replace(/\\/g, "/")
+        fileUrl: doc.filePath.replace(/\\/g, "/")
       }));
 
       return res.status(200).json({
@@ -172,7 +171,6 @@ async function getDocumentFiles(req, res) {
 
     // Group documents by fileType for all categories
     const grouped = {};
-    const baseUrl = getFileBaseUrl(req);
     
     docs.forEach((doc) => {
       const type = doc.fileType || "other";
@@ -185,7 +183,7 @@ async function getDocumentFiles(req, res) {
       }
       grouped[type].files.push({
         ...doc.toObject(),
-        fileUrl: baseUrl + doc.filePath.replace(/\\/g, "/")
+        fileUrl: doc.filePath.replace(/\\/g, "/")
       });
       grouped[type].count++;
     });
