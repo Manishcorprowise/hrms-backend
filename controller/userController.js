@@ -13,7 +13,6 @@ module.exports = {
     async healthCheck(req, res) {
         res.status(config.statusCodes.success).json({ message: "Server is running", status: "OK" });
     },
-
     async loginUser(req, res) {
         const { email, password } = req.body;
 
@@ -88,7 +87,6 @@ module.exports = {
             });
         }
     },
-
     async logoutUser(req, res) {
         try {
             // In a more advanced implementation, you might want to:
@@ -107,7 +105,6 @@ module.exports = {
             });
         }
     },
-
     async refreshToken(req, res) {
         const { refreshToken } = req.body;
 
@@ -154,9 +151,8 @@ module.exports = {
             });
         }
     },
-
     async createUser(req, res) {
-        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager } = req.body;
+        const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager,branch } = req.body;
         // For now, use a default createdBy since we don't have authentication yet
         const createdBy = "admin";
         // const password = createTempPassword();
@@ -188,10 +184,11 @@ module.exports = {
                 manager: manager || "Not Assigned",
                 password: hashedPassword,
                 createdBy,
+                branch,
                 updatedBy: createdBy,
                 deletedBy: createdBy
             });
-            
+                
             res.status(200).json({ 
                 message: "Employee created successfully", 
                 user: {
@@ -218,7 +215,6 @@ module.exports = {
             res.status(500).json({ message: "Internal server error", error: error.message });
         }
     },
-
     async updateUserPassword(req, res) {
         const { email, oldPassword, newPassword } = req.body;
         try {
@@ -379,8 +375,18 @@ module.exports = {
             console.error("Error fetching user:", error);
             res.status(500).json({ message: "Internal server error", error: error.message });
         }
+    },
+
+    async getManagers(req, res) {
+        try {
+            const managers = await User_Model.find({ role: { $in: ['manager', 'admin', 'super_admin'] }, isActive: true }, 'employeeName _id');
+            res.status(200).json({
+                message: "Managers fetched successfully",
+                managers: managers
+            });
+        } catch (error) {
+            console.error("Error fetching managers:", error);
+            res.status(500).json({ message: "Internal server error", error: error.message });
+        }
     }
-       
-
-
 }

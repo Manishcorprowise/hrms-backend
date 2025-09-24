@@ -3,7 +3,8 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
-const { createType, getTypes, updateType, deleteType, createOptionType, getOptionTypes, updateOptionType, deleteOptionType } = require('../controller/masterController');
+const { createType, getTypes, updateType, deleteType, createOptionType, getOptionTypes, updateOptionType, deleteOptionType, getOptionTypeCode } = require('../controller/masterController');
+const { get } = require('mongoose');
 
 // Apply authentication middleware to all routes
 router.use(authenticateToken);
@@ -19,6 +20,10 @@ router.post('/create-optiontype', createOptionType);
 router.get('/get-optiontype', getOptionTypes);
 router.post('/update-optiontype', updateOptionType);
 router.post('/delete-optiontype', deleteOptionType);
+
+// From frontend we get the type code we have to fetch the option which have those type codes
+
+router.get('/get-option-by-typecodes', getOptionTypeCode);
 
 
 

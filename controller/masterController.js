@@ -182,4 +182,27 @@ module.exports={
             return res.status(203).json({ status: false, message: 'Internal Server Error' });
         }
     },
+
+    async getOptionTypeCode(req,res){
+        try {
+            const { typeCode } = req.query; // Expecting typeCode as a comma-separated string
+            let code  = [+typeCode];
+            console.log("Received typeCode:", code);
+            if (!typeCode) {
+                return res.status(400).json({ status: false, message: 'typeCode query parameter is required' });
+            }
+            const optionTypes = await OptionType_Model.find({
+                typeCode: { $in: code },
+                isDeleted: false
+            }).select('code name');
+            return res.status(200).json({
+                status: true,
+                message: 'Option Types fetched successfully',
+                data: optionTypes
+            });
+        } catch (error) {
+            console.error('Error in getOptionTypeCode:', error);
+            return res.status(203).json({ status: false, message: 'Internal Server Error' });
+        }
+    }
 }

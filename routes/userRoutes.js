@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, healthCheck, updateUserPassword, loginUser, logoutUser, refreshToken, getAllUsers, getUserById, updateUser } = require('../controller/userController');
+const { createUser, healthCheck, updateUserPassword, loginUser, logoutUser, refreshToken, getAllUsers, getUserById, updateUser, getManagers } = require('../controller/userController');
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 
 const userRoutes = express.Router();
@@ -16,4 +16,8 @@ userRoutes.post('/update-user/:id', authenticateToken, authorizeRoles(['admin', 
 userRoutes.post('/update-password', updateUserPassword);
 userRoutes.get('/all-users', authenticateToken, authorizeRoles(['admin', 'super_admin','manager']), getAllUsers);
 userRoutes.get('/get-user/:id', authenticateToken, authorizeRoles(['admin', 'super_admin','manager']), getUserById);
+
+// Additional routes can be added here
+
+userRoutes.get('/all-managers', authenticateToken, authorizeRoles(['admin', 'super_admin']), getManagers);
 module.exports = {userRoutes};

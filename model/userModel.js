@@ -82,7 +82,8 @@ const userSchema = new mongoose.Schema({
     kadCred:{
         type:Boolean,
         default:false
-    }
+    },
+    branch:{ type: String, required: false }
     
     
 });
