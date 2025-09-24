@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const { Type_Model } = require("../model/masterModel");
+const { Type_Model, OptionType_Model } = require("../model/masterModel");
 
 
 
@@ -92,4 +92,94 @@ module.exports={
         }
     },
 
+    // Option Type Controllers
+    async createOptionType(req,res){
+        try {
+            const {  name, typeCode, description } = req.body;
+            console.log("Request Body:", req.body);
+            const createdBy = new mongoose.Types.ObjectId(req.user.id);
+            const savedOptionType = await OptionType_Model.create({
+                name,
+                typeCode,
+                description,
+                createdBy,
+        });
+        return res.status(200).json({
+            status: true,
+            message: "Option Type added successfully",
+            data: savedOptionType
+        });
+        } catch (error) {
+            console.error("Error adding option type:", error.message);
+            return res
+                .status(203)
+                .json({ status: false, message: "Internal Server Error" });
+        }
+    },
+    async getOptionTypes(req,res){
+        try {
+            // Logic to get option types
+            const optionTypes = await OptionType_Model.find({ isDeleted: false });
+
+            return res.status(200).json({
+                status: true,
+                message: "Option Types fetched successfully",
+                data: optionTypes
+            });
+
+        } catch (error) {
+            console.error('Error in getOptionTypes:', error);
+            return res.status(203).json({ status: false, message: 'Internal Server Error' });
+        }
+    },
+    async updateOptionType(req,res){
+        try {
+            const { id, name, typeCode, description } = req.body;
+            const updatedBy = new mongoose.Types.ObjectId(req.user.id);
+            const updatedOptionType = await OptionType_Model.findOneAndUpdate(
+                { _id: id, isDeleted: false },
+                { name, typeCode, description, updatedBy, updatedAt: new Date() },
+                { new: true }
+            );
+
+            if (!updatedOptionType) {
+                return res.status(203).json({ status: false, message: 'Option Type not found or already deleted' });
+            }
+
+            return res.status(200).json({
+                status: true,
+                message: 'Option Type updated successfully',
+                data: updatedOptionType
+            });
+            // Logic to update option type
+        } catch (error) {
+            console.error('Error in updateOptionType:', error);
+            return res.status(203).json({ status: false, message: 'Internal Server Error' });
+        }
+    },
+    async deleteOptionType(req,res){
+        try {
+            // Logic to delete option type
+            const { id } = req.body;
+            const deletedBy = new mongoose.Types.ObjectId(req.user.id);
+            const deletedOptionType = await OptionType_Model.findOneAndUpdate(
+                { _id: id, isDeleted: false },
+                { isDeleted: true, deletedAt: new Date(), deletedBy },
+                { new: true }
+            );
+
+            if (!deletedOptionType) {
+                return res.status(203).json({ status: false, message: 'Option Type not found or already deleted' });
+            }
+
+            return res.status(200).json({
+                status: true,
+                message: 'Option Type deleted successfully',
+                data: deletedOptionType
+            });
+        } catch (error) {
+            console.error('Error in deleteOptionType:', error);
+            return res.status(203).json({ status: false, message: 'Internal Server Error' });
+        }
+    },
 }
