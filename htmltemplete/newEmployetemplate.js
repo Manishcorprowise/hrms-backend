@@ -8,11 +8,9 @@ const config = require('../config');
  * @param {string} resetToken - Password reset token (optional)
  * @returns {string} - Complete HTML email template
  */
-const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, resetToken = null) => {
+const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, resetLink) => {
     // Generate password reset link
-    const resetLink = resetToken 
-        ? `${req.headers['x-frontend-base-url']}/reset-password?token=${resetToken}`
-        : `${req.headers['x-frontend-base-url']}/login`;
+
 
     return `
     <!DOCTYPE html>
@@ -224,10 +222,8 @@ const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, 
  * @param {string} resetToken - Password reset token (optional)
  * @returns {string} - Plain text email
  */
-const generateNewEmployeeTextTemplate = (userName, tempPassword, employeeName, resetToken = null) => {
-    const resetLink = resetToken 
-        ? `${config.server.baseUrl || 'http://localhost:3000'}/reset-password?token=${resetToken}`
-        : `${config.server.baseUrl || 'http://localhost:3000'}/login`;
+const generateNewEmployeeTextTemplate = (userName, tempPassword, employeeName, resetLink) => {
+    
 
     return `
 Welcome to HRMS Portal, ${employeeName}!

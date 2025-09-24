@@ -153,13 +153,15 @@ module.exports = {
     },
     async createUser(req, res) {
         const { employeeName, employeeNumber, dateOfJoining, email, phone, position, role, department, manager,branch } = req.body;
+            const resetLink = `${req.headers['x-frontend-base-url']}/login`;
+        console.log(req.user, "req.user", req.body);
         // For now, use a default createdBy since we don't have authentication yet
-        const createdBy = "admin";
+        const createdBy = req.user.id; 
         // const password = createTempPassword();
         const password = "temp@1234";
         const userName = generateUsername(employeeName,employeeNumber);
         // Generate professional HTML email template
-        const htmlEmailContent = generateNewEmployeeEmailTemplate(userName, password, employeeName);
+        const htmlEmailContent = generateNewEmployeeEmailTemplate(userName, password, employeeName,resetLink);
         const emailResponse = await sendEmailGmail(email, htmlEmailContent, "Welcome to HRMS Portal - Your Login Credentials");
         console.log(emailResponse);
         const saltRounds = 10;
@@ -202,7 +204,7 @@ module.exports = {
             });
         } catch (error) {
             console.error("Error creating user:", error);
-            res.status(500).json({ message: "Internal server error", error: error.message });
+            res.status(203).json({ message: "Internal server error", error: error.message });
         }
     },
     async updateUser(req, res) {
