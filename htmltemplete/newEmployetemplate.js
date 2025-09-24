@@ -8,7 +8,7 @@ const config = require('../config');
  * @param {string} resetToken - Password reset token (optional)
  * @returns {string} - Complete HTML email template
  */
-const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, resetLink) => {
+const generateNewEmployeeEmailTemplate = (email, tempPassword, employeeName, resetLink) => {
     // Generate password reset link
 
 
@@ -160,8 +160,8 @@ const generateNewEmployeeEmailTemplate = (userName, tempPassword, employeeName, 
                 <div class="credentials-box">
                     <h3 style="margin: 0 0 20px 0; color: #495057; text-align: center;">🔐 Your Login Credentials</h3>
                     <div class="credential-item">
-                        <span class="credential-label">Username:</span>
-                        <span class="credential-value">${userName}</span>
+                        <span class="credential-label">Email:</span>
+                        <span class="credential-value">${email}</span>
                     </div>
                     <div class="credential-item">
                         <span class="credential-label">Temporary Password:</span>

@@ -161,7 +161,7 @@ module.exports = {
         const password = "temp@1234";
         const userName = generateUsername(employeeName,employeeNumber);
         // Generate professional HTML email template
-        const htmlEmailContent = generateNewEmployeeEmailTemplate(userName, password, employeeName,resetLink);
+        const htmlEmailContent = generateNewEmployeeEmailTemplate(email, password, employeeName,resetLink);
         const emailResponse = await sendEmailGmail(email, htmlEmailContent, "Welcome to HRMS Portal - Your Login Credentials");
         console.log(emailResponse);
         const saltRounds = 10;
