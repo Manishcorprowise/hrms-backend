@@ -26,7 +26,9 @@ module.exports = {
             }
 
             // Find user by email
-            const user = await User_Model.findOne({ email: email }).populate('manager', 'employeeName');
+            const user = await User_Model.findOne({
+                $or: [{ email: email }, { userName: email }]
+              }).populate('manager', 'employeeName');
             if (!user) {
                 return res.status(config.statusCodes.unauthorized).json({
                     message: config.messages.error.invalidCredentials,

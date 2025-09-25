@@ -8,6 +8,7 @@ const fileUpload = require('express-fileupload');
 const path = require('path');
 const { documentRoutes } = require('./routes/documentRoutes');
 const { masterRouter } = require('./routes/masterRoutes');
+const { requestRouter } = require('./routes/requestRoutes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/employee', userRoutes);
 app.use('/api/personal-details', personalDetailsRoutes);
 app.use('/api/document', documentRoutes);
 app.use('/api/master', masterRouter);
+app.use('/api/request', requestRouter);
 
 
 
