@@ -2,7 +2,8 @@ const { default: mongoose } = require("mongoose");
 const { Type_Model, OptionType_Model } = require("../model/masterModel");
 const { Request_Model } = require("../model/requestModel");
 const { User_Model } = require("../model/userModel");
-
+const fs = require('fs');
+const path = require('path');
 
 
 module.exports = {
@@ -12,6 +13,37 @@ module.exports = {
             console.log("Request Body:", req.body);
 
             // filePath will added later when we implement file upload
+            // If a file is provided, generate a unique file path for this request
+            let filePath = undefined;
+            if (file && fileName) {
+                // Create a unique folder for each request using userId and timestamp
+                const timestamp = Date.now();
+                const userFolder = req.user.id.toString();
+                // Store in database as: requests/${userFolder}/${timestamp}_${fileName}
+                filePath = `requests/${userFolder}/${timestamp}_${fileName}`;
+            }
+
+            // If a file is provided in base64, decode and save it to the generated filePath
+            if (file && fileName && filePath) {
+                // Actual file location on disk: uploads/requests/${userFolder}/${timestamp}_${fileName}
+                const actualFilePath = `uploads/${filePath}`;
+
+                // Ensure the directory exists
+                const dir = path.dirname(actualFilePath);
+                if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir, { recursive: true });
+                }
+
+                // file is expected to be a base64 string (may include data:...;base64, prefix)
+                let base64Data = file;
+                // Remove data URL prefix if present
+                if (base64Data.startsWith('data:')) {
+                    base64Data = base64Data.split(',')[1];
+                }
+
+                // Write the file to disk using actual file path
+                fs.writeFileSync(actualFilePath, base64Data, 'base64');
+            }
 
             //createdBy will be added from the token
             const employeeId = new mongoose.Types.ObjectId(req.user.id)
@@ -25,7 +57,7 @@ module.exports = {
                 from,
                 to,
                 fileName,
-                // filePath will be added later
+                filePath,
                 createdBy
             });
             return res.status(200).json({
@@ -74,8 +106,10 @@ module.exports = {
                         from: 1,
                         to: 1,
                         fileName: 1,
+                        filePath: 1,
                         createdBy: 1,
                         createdAt: 1,
+                        reply: 1,
                         requestTypeCode: 1,
                         requestTypeName: "$requestTypeDetails.name" // 👈 only take the name field
                     }
@@ -111,9 +145,7 @@ module.exports = {
                         }
                     },
                     { $unwind: { path: '$employeeDetails', preserveNullAndEmptyArrays: true } },
-                    // filter only non-deleted requests
                     { $match: { isDeleted: false } },
-                    // lookup option type name
                     {
                         $lookup: {
                             from: 'OptionTypes',
@@ -134,6 +166,7 @@ module.exports = {
                             createdBy: 1,
                             createdAt: 1,
                             requestTypeCode: 1,
+                            filePath: 1,
                             reply: 1,
                             employeeName: '$employeeDetails.employeeName',
                             employeeEmail: '$employeeDetails.email',
@@ -188,6 +221,7 @@ module.exports = {
                         from: 1,
                         to: 1,
                         fileName: 1,
+                        filePath: 1,
                         createdBy: 1,
                         createdAt: 1,
                         requestTypeCode: 1,
@@ -210,7 +244,6 @@ module.exports = {
             return res.status(500).json({ status: false, message: 'Internal Server Error' });
         }
     },
-
     // Manager or admin can respond to a request (approve/reject and add a reply)
     async respondRequest(req, res) {
         try {
@@ -245,32 +278,55 @@ module.exports = {
     },
     async updateRequest(req, res) {
         try {
-            // Allow employee to update their own request's editable fields (only when pending)
-            const { id, description, from, to, fileName } = req.body;
-            if (!id) return res.status(400).json({ status: false, message: 'Request id is required' });
-
+            const { id, description, from, to, file, fileName } = req.body;
+            if (!id) {
+                return res.status(203).json({ status: false, message: 'Request id is required' });
+            }
             const request = await Request_Model.findById(id);
             if (!request) return res.status(404).json({ status: false, message: 'Request not found' });
-
             // Only the creator can update and only when status is pending
             if (request.employeeId.toString() !== req.user.id.toString()) {
                 return res.status(403).json({ status: false, message: 'Not authorized to update this request' });
             }
-            if (request.status !== 'pending') {
-                return res.status(400).json({ status: false, message: 'Only pending requests can be updated' });
+            // Handle file upload if file is provided
+            let filePath = request.filePath; // Keep existing file path if no new file
+            if (file && fileName) {
+                // Create a unique folder for each request using userId and timestamp
+                const timestamp = Date.now();
+                const userFolder = req.user.id.toString();
+                // Store in database as: requests/${userFolder}/${timestamp}_${fileName}
+                filePath = `requests/${userFolder}/${timestamp}_${fileName}`;
+                
+                // Actual file location on disk: uploads/requests/${userFolder}/${timestamp}_${fileName}
+                const actualFilePath = `uploads/${filePath}`;
+                const dir = path.dirname(actualFilePath);
+                if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir, { recursive: true });
+                }
+
+                // file is expected to be a base64 string (may include data:...;base64, prefix)
+                let base64Data = file;
+                // Remove data URL prefix if present
+                if (base64Data.startsWith('data:')) {
+                    base64Data = base64Data.split(',')[1];
+                }
+
+                // Write the file to disk using actual file path
+                fs.writeFileSync(actualFilePath, base64Data, 'base64');
             }
 
             request.description = description || request.description;
             request.from = from || request.from;
             request.to = to || request.to;
             request.fileName = fileName || request.fileName;
+            request.filePath = filePath;
             request.updatedBy = new mongoose.Types.ObjectId(req.user.id);
             request.updatedAt = new Date();
 
             const saved = await request.save();
             return res.status(200).json({ status: true, message: 'Request updated successfully', data: saved });
         } catch (error) {
-            console.error('Error in updateType:', error);
+            console.error('Error in updateRequest:', error);
             return res.status(203).json({ status: false, message: 'Internal Server Error' });
         }
     },

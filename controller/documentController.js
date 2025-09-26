@@ -147,10 +147,7 @@ async function getDocumentFiles(req, res) {
     const docs = await Document_Model.find(filter)
       .sort({ createdAt: -1 });
 
-    // Debug logging
-    console.log('Query filter:', filter);
-    console.log('Found documents:', docs.length);
-    console.log('Documents:', docs);
+    
 
     // If category is specified, return files directly
     if (category) {

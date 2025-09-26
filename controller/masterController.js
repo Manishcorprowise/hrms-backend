@@ -187,7 +187,6 @@ module.exports={
         try {
             const { typeCode } = req.query; // Expecting typeCode as a comma-separated string
             let code  = [+typeCode];
-            console.log("Received typeCode:", code);
             if (!typeCode) {
                 return res.status(400).json({ status: false, message: 'typeCode query parameter is required' });
             }
