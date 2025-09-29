@@ -55,6 +55,17 @@ const requestSchema = new mongoose.Schema({
     reply:{
         type: String,
         default:''
+    },
+    managerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+    },
+    responseBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users',
+    },
+    responseAt: {
+        type: Date,
     }
 
 });
