@@ -15,7 +15,7 @@ router.post('/update-request', updateRequest);
 router.post('/delete-request', deleteRequest);
 
 // Manager / Admin endpoints
-router.get('/get-requests-for-manager', authorizeRoles(['admin', 'super_admin', 'manager']), getRequestsForManager);
+router.get('/get-requests-for-manager', getRequestsForManager);
 router.post('/respond-request', authorizeRoles(['admin', 'super_admin', 'manager']), respondRequest);
 
 
